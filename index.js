@@ -8,11 +8,12 @@ app.post('/ask-gemini', async (req, res) => {
         const apiKey = process.env.GEMINI_API_KEY;
         
         if (!apiKey) {
+            console.log("ERROR: GEMINI_API_KEY is missing!");
             return res.status(500).json({ error: "API Key not found on server." });
         }
         
-        // ปรับมาใช้ gemini-pro ซึ่งรองรับคีย์รูปแบบใหม่นี้เสถียรที่สุด
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`;
+        // เปลี่ยนมาใช้ gemini-1.5-pro ครับ
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${apiKey}`;
         
         const response = await fetch(url, {
             method: 'POST',
@@ -28,9 +29,11 @@ app.post('/ask-gemini', async (req, res) => {
             const reply = data.candidates[0].content.parts[0].text;
             res.json({ reply: reply });
         } else {
+            console.log("GEMINI API ERROR RESPONSE:", JSON.stringify(data));
             res.status(500).json({ error: "Gemini API Error", details: data });
         }
     } catch (error) {
+        console.log("SERVER CATCH ERROR:", error.message);
         res.status(500).json({ error: error.message });
     }
 });

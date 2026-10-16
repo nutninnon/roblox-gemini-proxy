@@ -12,8 +12,8 @@ app.post('/ask-gemini', async (req, res) => {
             return res.status(500).json({ error: "API Key not found on server." });
         }
         
-        // ใช้ gemini-1.5-flash พร้อมระบุเวอร์ชัน v1 แทน v1beta ครับ
-        const url = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+        // ใช้ชื่อรุ่น gemini-1.5-flash ผ่านเวอร์ชัน v1beta ตามมาตรฐานคีย์ใหม่
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
         
         const response = await fetch(url, {
             method: 'POST',

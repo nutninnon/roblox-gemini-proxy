@@ -8,12 +8,25 @@ app.post('/ask-gemini', async (req, res) => {
         const apiKey = process.env.GEMINI_API_KEY;
         
         if (!apiKey) {
-            console.log("ERROR: GEMINI_API_KEY is missing!");
             return res.status(500).json({ error: "API Key not found on server." });
         }
         
-        // เปลี่ยนมาใช้ gemini-pro ซึ่งรองรับ API Key ทุกรูปแบบอย่างไร้รอยต่อครับ
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`;
+        // ให้ระบบเช็กลิสต์รุ่นโมเดลที่ใช้งานได้จาก API Key ของคุณนนท์โดยอัตโนมัติ
+        const listUrl = `https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`;
+        const listRes = await fetch(listUrl);
+        const listData = await listRes.json();
+        
+        // ค้นหาโมเดลตัวแรกที่รองรับการสร้างข้อความ (generateContent)
+        let activeModel = "models/gemini-1.5-flash"; // ค่าสำรอง
+        if (listData.models) {
+            const found = listData.models.find(m => m.supportedGenerationMethods && m.supportedGenerationMethods.includes("generateContent"));
+            if (found) {
+                activeModel = found.name; // ชื่อโมเดลที่ถูกต้องตามสิทธิ์คีย์ของคุณนนท์
+            }
+        }
+        
+        // ส่งคำขอไปยังโมเดลที่รองรับจริง
+        const url = `https://generativelanguage.googleapis.com/v1beta/${activeModel}:generateContent?key=${apiKey}`;
         
         const response = await fetch(url, {
             method: 'POST',
@@ -29,11 +42,9 @@ app.post('/ask-gemini', async (req, res) => {
             const reply = data.candidates[0].content.parts[0].text;
             res.json({ reply: reply });
         } else {
-            console.log("GEMINI API ERROR RESPONSE:", JSON.stringify(data));
             res.status(500).json({ error: "Gemini API Error", details: data });
         }
     } catch (error) {
-        console.log("SERVER CATCH ERROR:", error.message);
         res.status(500).json({ error: error.message });
     }
 });

@@ -8,9 +8,11 @@ app.post('/ask-gemini', async (req, res) => {
         const apiKey = process.env.GEMINI_API_KEY;
         
         if (!apiKey) {
-            return res.status(500).json({ error: "API Key not found on server environment variables." });
+            console.log("ERROR: GEMINI_API_KEY is missing!");
+            return res.status(500).json({ error: "API Key not found on server." });
         }
         
+        // ใช้โมเดล gemini-1.5-flash ที่รองรับ
         const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
         
         const response = await fetch(url, {
@@ -23,13 +25,16 @@ app.post('/ask-gemini', async (req, res) => {
         
         const data = await response.json();
         
+        // เช็กว่า Gemini ตอบกลับมาปกติไหม
         if (data.candidates && data.candidates[0].content) {
             const reply = data.candidates[0].content.parts[0].text;
             res.json({ reply: reply });
         } else {
-            res.status(500).json({ error: "Invalid response from Gemini API", details: data });
+            console.log("GEMINI API ERROR RESPONSE:", JSON.stringify(data));
+            res.status(500).json({ error: "Gemini API Error", details: data });
         }
     } catch (error) {
+        console.log("SERVER CATCH ERROR:", error.message);
         res.status(500).json({ error: error.message });
     }
 });
